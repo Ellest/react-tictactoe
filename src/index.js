@@ -2,19 +2,61 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+/*
 class Square extends React.Component {
-  /* This returns a React element -> lightweight description of what to render */
+  // This returns a React element -> lightweight description of what to render 
   render() {
     return (
-      {/* 
-        Set state schedules an update to the component. This causes React to merge
-        in the passed state update and rerender the components and its descendants.
-      */},
+      {
+        //Set state schedules an update to the component. This causes React to merge
+        //in the passed state update and rerender the components and its descendants.
+      },
       <button className="square" onClick={() => this.props.onClick()}>
         {this.props.value}
       </button>
     );
   }
+}*/
+
+/* 
+  This is a funcitonal way of declaring the above object. Instead of creating 
+  and object, we can create a function. These types of functions that only contain
+  a render() function are called "functional components"
+*/
+function Square(props){
+  return(
+    {/* 
+      onClick() will not work because it will call the onClick function immediately
+      without passing it down.
+    */},
+    <button className="square" onClick={props.onClick}>
+      {props.value}
+    </button>
+  );
+}
+
+function checkWinner(sqrs){
+  const lines = [
+    [0,1,2],
+    [3,4,5],
+    [6,7,8],
+    [0,3,6],
+    [1,4,7],
+    [2,5,8],
+    [0,4,8],
+    [2,4,6],
+  ];
+  for (let i = 0; i < lines.length; i++){
+    /* 
+      This seems similar to multi-assign in python. Just assigns
+      values in each element to a,b,c for each iteration.
+    */
+    const [a,b,c] = lines[i];
+    if (sqrs[a] && sqrs[a] === sqrs[b] && sqrs[b] === sqrs[c]){
+      return sqrs[a]
+    }
+  }
+  return null;
 }
 
 class Board extends React.Component {
@@ -26,6 +68,10 @@ class Board extends React.Component {
     super(props);
     this.state = {
       squares: Array(9).fill(null),
+      /* initialize state to true*/
+      isX: true,
+      finisehd: false,
+      turns: 0,
     }
   }
 
@@ -36,8 +82,16 @@ class Board extends React.Component {
       array.
     */
     const squares = this.state.squares.slice();
-    squares[i] = 'X';
-    this.setState({squares: squares})
+    /*  */
+    if (squares[i] || this.state.finished){
+      return;
+    }
+    squares[i] = this.state.isX ? 'X' : 'O';
+    this.setState({
+      squares: squares, 
+      isX: !this.state.isX,
+      turns: this.state.turns + 1,
+    });
   }
   /* parameters = props */
   renderSquare(i) {
@@ -76,7 +130,19 @@ class Board extends React.Component {
   }
 
   render() {
-    const status = 'Next player: X';
+    
+    {/* Display whose turn it is */}
+    const winner = checkWinner(this.state.squares);
+    let status;
+    if (winner){
+      status = 'Winner: ' + winner;
+      this.state.finished = true;
+    } else if (this.state.turns == 9) {
+      status = 'Ended in a Draw...';
+      this.state.finished = true;
+    } else {
+      status = 'Next Player ' + (this.state.isX ? 'X' : 'O');
+    }
 
     return (
       <div>
